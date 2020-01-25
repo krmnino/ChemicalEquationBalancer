@@ -1,22 +1,22 @@
 import numpy as np
 from Element import Element
+from Atom import Atom
 
 raw_elements = np.genfromtxt('elements.csv', dtype = 'unicode',  delimiter = ',')
-elements = []
+atoms = []
+hash_elements = {}
 
 for i in range(1, len(raw_elements)):
-      e = Element(raw_elements[i][2], raw_elements[i][1], raw_elements[i][0], raw_elements[i][3], 1)
-      elements.append(e)
+      #print(raw_elements[i][1])
+      hash_elements[raw_elements[i][1][:-1]] = Element(raw_elements[i][2], raw_elements[i][1], raw_elements[i][0], raw_elements[i][3], 1)
 
-def search_element(elements, string):
-    for i in range(0, len(elements)):
-        element_symbol = elements[i].get_symbol()
-        if(element_symbol == string):
-            print(elements[i].get_name())
-            return elements[i].get_name()
+def search_element(string):
+    if string in hash_elements:
+        print(hash_elements[string].get_name())
+        return True
     return False
 
-def parse_equation(elements, equation):
+def parse_equation(atoms, equation):
     if(equation.find('=') == -1):
         return "Equation is incomplete"
     reactants = equation[:equation.find('=')]
@@ -28,28 +28,38 @@ def parse_equation(elements, equation):
         elif(reactants[index] == ' '):
             index += 1
         elif(not reactants[index + 1].isupper() and reactants[index + 2].isdigit()):
-            if(not search_element(elements, reactants[index] + reactants[index + 1])):
+            if(search_element(reactants[index] + reactants[index + 1])):
+                atoms.append(Atom(hash_elements[reactants[index] + reactants[index + 1]], reactants[index + 2]))
+                index += 3
+            else:
                 print('Invalid input')
-                break;
-            index += 3
+                break
         elif(reactants[index + 1].isdigit()):
-            if(search_element(elements, reactants[index]) == False):
+            if(search_element(reactants[index])):
+                atoms.append(Atom(hash_elements[reactants[index]], reactants[index + 1]))
+                index += 2
+            else:
                 print('Invalid input')
-                break;
-            index += 2
+                break
         elif(not reactants[index + 1].isupper()):
-            if(search_element(elements, reactants[index] + reactants[index + 1]) == False):
+            if(search_element(reactants[index] + reactants[index + 1])):
+                atoms.append(Atom(hash_elements[reactants[index] + reactants[index + 1]], 1))
+                index += 2
+            else:
                 print('Invalid input')
-                break;
-            index += 2
+                break
         else:
-            if(search_element(elements, reactants[index]) == False):
+            if(search_element(reactants[index])):
+                atoms.append(Atom(hash_elements[reactants[index]], 1))
+            else:
                 print('Invalid input')
-                break;
-            
+                break
+
             index += 1
 
 #equation = 'CH4 + O2 = H2O + CO2'
 equation = 'Na3PO4 + MgCl2 = NaCl + Mg3P2O8'
 #equation = input('Enter the chemical equation: ')
-parse_equation(elements, equation)
+parse_equation(atoms, equation)
+print(atom.get_number())
+
